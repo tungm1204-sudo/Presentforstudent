@@ -40,7 +40,7 @@ function StudentDashboard({ account }) {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/requests`);
+      const res = await fetch(`https://presentforstudent.onrender.com/api/requests`);
       if (res.ok) {
         const data = await res.json();
         setRequests(data.filter(r => r.studentAddress.toLowerCase() === account.toLowerCase()));
@@ -56,7 +56,7 @@ function StudentDashboard({ account }) {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('http://localhost:5000/api/requests', {
+      const res = await fetch('https://presentforstudent.onrender.com/api/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -18,7 +18,7 @@ function StaffDashboard({ account }) {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/requests');
+      const res = await fetch('https://presentforstudent.onrender.com/api/requests');
       if (res.ok) {
         const data = await res.json();
         setRequests(data.filter(r => r.status === 'Pending Review'));
@@ -54,7 +54,7 @@ function StaffDashboard({ account }) {
       await tx.wait();
 
       // Fallback update just in case event listener is slow
-      await fetch(`http://localhost:5000/api/requests/${req.id}`, {
+      await fetch(`https://presentforstudent.onrender.com/api/requests/${req.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Issued' })
@@ -67,7 +67,7 @@ function StaffDashboard({ account }) {
       if (error.code === 'ACTION_REJECTED' || (error.message && error.message.includes('rejected'))) {
         setMessage("❌ Transaction rejected by user.");
         // Mark as failed
-        await fetch(`http://localhost:5000/api/requests/${req.id}`, {
+        await fetch(`https://presentforstudent.onrender.com/api/requests/${req.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'Failed/Cancelled' })
