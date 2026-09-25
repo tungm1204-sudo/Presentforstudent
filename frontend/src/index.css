@@ -4,7 +4,11 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 min-h-screen antialiased;
+    @apply bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen antialiased transition-colors duration-300;
+  }
+  
+  /* Lớp phủ Gradient cho Light Mode */
+  body.light-theme {
     background-image: radial-gradient(circle at top right, #e0e7ff, transparent 40%),
                       radial-gradient(circle at bottom left, #f3e8ff, transparent 40%);
     background-attachment: fixed;
@@ -13,28 +17,22 @@
 
 @layer utilities {
   .modern-card {
-    @apply bg-white border border-slate-200 shadow-xl shadow-slate-200/50 rounded-2xl;
+    @apply bg-white border border-slate-200 shadow-xl shadow-slate-200/50 rounded-2xl transition-colors duration-300 dark:bg-slate-800 dark:border-slate-700 dark:shadow-none;
   }
   
   .modern-input {
-    @apply bg-white border border-slate-300 text-slate-900 placeholder-slate-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm;
+    @apply bg-white border border-slate-300 text-slate-900 placeholder-slate-400 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:ring-indigo-400;
   }
 
   .modern-button {
-    @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transform transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transform transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
   }
 }
 
 /* Micro-animations */
 @keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in-up {

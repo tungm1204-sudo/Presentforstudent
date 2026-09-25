@@ -16,13 +16,14 @@ Hệ thống **Student Achievement and Reward System** (Ghi nhận thành tích 
 
 Để chạy hệ thống trên máy của bạn, hãy làm đúng thứ tự sau:
 
-### 1. Cài đặt Ví MetaMask
-- Hệ thống này **BẮT BUỘC** phải có ví MetaMask cài trên trình duyệt (Chrome/Edge/Brave).
-- **Tạo 2 tài khoản (Account) trong cùng 1 ví:**
-    -   **Account 1:** Đóng vai trò là **Giảng viên (Staff)**.
-    -   **Account 2:** Đóng vai trò là **Sinh viên (Student)**.
-- **Chuyển mạng sang Sepolia:** Mở MetaMask > Bấm vào góc trái trên cùng (chỗ chọn mạng) > Bật "Show test networks" > Chọn **Sepolia**.
-- **Xin ETH Testnet:** Cả 2 Account đều cần một ít Sepolia ETH để trả phí Gas. Lấy ví của từng Account lên trang [Alchemy Sepolia Faucet](https://www.alchemy.com/faucets/ethereum-sepolia) để nhận ETH miễn phí.
+### 1. Cài đặt Ví MetaMask và Hiểu về Phân Quyền (Roles)
+- Hệ thống này **BẮT BUỘC** phải có ví MetaMask cài trên trình duyệt.
+- **Tạo 2 tài khoản (Account) trong cùng 1 ví MetaMask:**
+    - **Account 1 (Người tạo mạng / Deploy Contract):** Tài khoản nào dùng để chạy lệnh Deploy Smart Contract sẽ tự động được hệ thống cấp quyền làm **Giảng viên (Staff / Owner)**.
+    - **Account 2, 3... (Người dùng khác):** Tất cả các tài khoản khác khi kết nối vào web sẽ mặc định là **Sinh viên (Student)**.
+- **Lưu ý:** Khi gói code gửi cho người khác, nếu họ tự Deploy lại Contract bằng ví của họ, ví đó của họ sẽ tự động trở thành Giảng Viên. Nếu họ xài chung Contract cũ của bạn, thì bạn là Giảng Viên, họ là Sinh Viên.
+- **Chuyển mạng sang Sepolia:** Mở MetaMask > Bật "Show test networks" > Chọn **Sepolia**.
+- **Xin ETH Testnet:** Xin Sepolia ETH trên trang [Alchemy Sepolia Faucet](https://www.alchemy.com/faucets/ethereum-sepolia) để trả phí Gas.
 
 ### 2. Khởi động Backend (Server)
 1.  Mở thư mục code đồ án bằng **VS Code**.
@@ -49,44 +50,40 @@ Hệ thống **Student Achievement and Reward System** (Ghi nhận thành tích 
 4.  Giữ phím `Ctrl` và click vào link `http://localhost:5173/` để mở web trên trình duyệt.
 
 > [!WARNING]
-> **Lưu ý Cực Kỳ Quan Trọng:** Khi bạn muốn đóng vai ai, bạn **PHẢI** mở MetaMask lên và đổi tài khoản (Account 1 hoặc 2) cho đúng trước khi thao tác trên web. Web tự động nhận diện tài khoản bạn đang chọn trên MetaMask.
+> **Lưu ý Cực Kỳ Quan Trọng:** Khi bạn muốn đổi vai trò để test, bạn **PHẢI** mở MetaMask lên, đổi tài khoản, sau đó tải lại trang (F5). Hệ thống sẽ tự động quét ví và đẩy bạn vào đúng trang Staff hoặc Student.
 
 ---
 
 ## PHẦN 3: KỊCH BẢN QUAY VIDEO DEMO NỘP BÁO CÁO
 
-Đây là kịch bản hoàn hảo nhất để phô diễn toàn bộ luồng logic (Sinh viên nộp đơn -> Giảng viên chuyển tiền -> Sinh viên mua đồ).
+Đây là kịch bản hoàn hảo nhất để phô diễn luồng logic (Sinh viên nộp đơn -> Giảng viên chuyển tiền -> Sinh viên mua đồ).
 
 ### 🎬 Cảnh 1: Sinh viên nộp đơn xin xét duyệt (Submit Request)
-1.  **Hành động đầu tiên:** Mở MetaMask, **CHỌN ACCOUNT 2 (Sinh viên)**.
-2.  Trên trang web, chuyển sang thẻ **"Student Dashboard"**.
-3.  Giải thích trong video: *"Đây là màn hình của sinh viên, hiện tại số dư là 0 ERT, chưa có đơn nào được nộp."*
-4.  Điền form **Submit Achievement Proof**:
-    -   *Achievement Title:* "Top 1 Hackathon 2026"
-    -   *Description:* "Link minh chứng giải thưởng: github.com/..."
-5.  Bấm nút **Submit for Review**.
-6.  Chỉ vào phần "My Requests History", đơn vừa nộp sẽ hiện ra với chữ nhấp nháy **PENDING REVIEW** (Đang chờ duyệt).
+1. **Hành động đầu tiên:** Mở MetaMask, **CHỌN ACCOUNT 2 (Sinh viên)**.
+2. Trên trang chủ (Landing Page), bấm nút **Connect Wallet**. Hệ thống nhận diện đây là sinh viên và tự động chuyển vào **Student Dashboard**.
+3. Giải thích trong video: *"Hệ thống có tính năng phân quyền (Role-based Auth). Do ví này là ví sinh viên, em tự động được chuyển vào Cổng Sinh Viên."*
+4. Cuộn xuống điền form **Khai Báo Thành Tích (Submit Achievement Proof)**.
+5. Bấm nút **Submit for Review**.
+6. Đơn vừa nộp sẽ hiện ra ở cột bên cạnh với chữ nhấp nháy **Pending Review**.
 
 ### 🎬 Cảnh 2: Giảng viên kiểm tra và Phát thưởng (Approve & Mint)
-1.  **Hành động quan trọng:** Mở MetaMask, **ĐỔI SANG ACCOUNT 1 (Giảng viên)**.
-2.  Trên trang web, chuyển sang thẻ **"Staff Dashboard"**.
-3.  Giải thích trong video: *"Bây giờ em đổi vai sang Giảng viên. Hệ thống tự nhận diện và hiển thị Đơn xin duyệt của sinh viên lúc nãy."*
-4.  Nhập số lượng Token vào ô Amount: Gõ `100`.
-5.  Bấm nút **Approve & Mint**.
-6.  MetaMask sẽ bật lên yêu cầu xác nhận. Bấm **Confirm (Xác nhận)**.
-7.  Đợi vài giây để Blockchain xử lý (Lúc này giải thích: *"Giao dịch đang được đưa lên chuỗi khối Sepolia"*).
-8.  Khi thành công, có thông báo báo xanh và đơn đó sẽ **biến mất** khỏi màn hình Staff (vì đã duyệt xong).
+1. **Hành động quan trọng:** Mở MetaMask, **ĐỔI SANG ACCOUNT 1 (Giảng viên)**.
+2. Giải thích trong video: *"Hệ thống được lập trình để bảo mật tối đa. Ngay khi phát hiện người dùng đổi ví, hệ thống sẽ tự động Đăng Xuất (Auto-Logout) để bảo vệ dữ liệu."*
+3. Bấm nút **Connect Wallet** lại bằng ví Giảng viên. Hệ thống tự động chuyển hướng vào Cổng Giảng Viên (Staff Portal).
+4. Nhập số lượng Token vào ô Amount ở đơn của sinh viên: Gõ `0.01`.
+5. Bấm nút **Approve & Mint (Duyệt & Cấp Thưởng)**.
+6. MetaMask sẽ bật lên, bấm **Confirm (Xác nhận)**. Đợi vài giây để Blockchain xử lý.
+7. Khi thành công, đơn đó sẽ biến mất (vì đã duyệt xong).
 
 ### 🎬 Cảnh 3: Sinh viên nhận tiền và Đi siêu thị đổi quà (Redeem Store)
-1.  **Hành động quan trọng:** Mở MetaMask, **ĐỔI LẠI SANG ACCOUNT 2 (Sinh viên)**.
-2.  Trên trang web, chuyển lại sang thẻ **"Student Dashboard"**.
-3.  Giải thích trong video: *"Sinh viên vào kiểm tra lại, số dư đã nhảy lên 100 ERT. Trạng thái đơn cũ đã đổi thành ISSUED màu xanh."*
-4.  Cuộn xuống phần **Reward Store (Cửa hàng Đổi quà)**.
-5.  Bấm nút **Redeem Now** ở món quà "University T-Shirt" (Giá 50 ERT).
-6.  MetaMask bật lên, bấm **Confirm**.
-7.  Đợi giao dịch xác nhận xong. Giải thích trong video: *"Token của sinh viên đã bị đốt (Burn) đi 50 ERT để đổi lấy áo"*.
-8.  Chỉ vào số dư: Số dư tự động tụt xuống còn **50 ERT**.
-9.  *(Kết thúc video)*.
+1. **Hành động quan trọng:** Mở MetaMask, **ĐỔI LẠI SANG ACCOUNT 2 (Sinh viên)**. Hệ thống lại tự động Đăng Xuất. Bấm **Connect Wallet** để vào lại Cổng Sinh Viên.
+2. Giải thích trong video: *"Sinh viên vào kiểm tra lại, số dư đã nảy lên 0.01 ERT. Đơn cũ đã đổi thành ISSUED màu xanh. Sinh viên này cũng đã được vinh danh trên Bảng Xếp Hạng (Leaderboard)."*
+3. Cuộn xuống phần **Reward Store (Cửa hàng Đổi quà)**.
+4. Bấm nút **Redeem Now** ở món quà "University T-Shirt" (Giá 0.005 ERT).
+5. MetaMask bật lên, bấm **Confirm**.
+6. Đợi giao dịch xác nhận xong. Giải thích trong video: *"Token của sinh viên đã bị đốt (Burn) đi 0.005 ERT để đổi lấy áo"*.
+7. Số dư tự động tụt xuống còn **0.005 ERT**.
+8. *(Kết thúc video)*.
 
 ---
 
