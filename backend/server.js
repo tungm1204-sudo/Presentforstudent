@@ -90,15 +90,27 @@ app.get('/api/requests', (req, res) => {
 
 app.put('/api/requests/:id', (req, res) => {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, amount } = req.body;
     try {
         const requests = getData(REQ_FILE);
         const index = requests.findIndex(r => r.id === id);
         if (index !== -1) {
             requests[index].status = status;
+            if (amount) requests[index].amount = amount;
+            if (status === 'Issued') requests[index].issuedAt = new Date().toISOString();
             saveData(REQ_FILE, requests);
             res.json({ message: `Request updated to ${status}` });
         } else res.status(404).json({ error: 'Not found' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/requests/:id', (req, res) => {
+    const { id } = req.params;
+    try {
+        const requests = getData(REQ_FILE);
+        const newRequests = requests.filter(r => r.id !== id);
+        saveData(REQ_FILE, newRequests);
+        res.json({ message: 'Request deleted' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -156,6 +168,8 @@ if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
             const index = requests.findIndex(r => r.id === achievementId);
             if (index !== -1) {
                 requests[index].status = 'Issued';
+                requests[index].amount = ethers.formatUnits(amount, 18);
+                requests[index].issuedAt = new Date().toISOString();
                 saveData(REQ_FILE, requests);
             }
         } catch (err) { console.error(err); }

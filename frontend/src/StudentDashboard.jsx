@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { toast } from 'react-hot-toast';
 
 const CONTRACT_ADDRESS = "0x44A3875B9BC1e497DD4c3129092753e12462231A";
 const CONTRACT_ABI = [
@@ -19,14 +20,15 @@ function StudentDashboard({ account, lang, t }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [reqForm, setReqForm] = useState({ title: '', description: '' });
-  const [message, setMessage] = useState('');
   const [studentInfo, setStudentInfo] = useState(null);
+  const [redemptions, setRedemptions] = useState([]);
 
   useEffect(() => {
     if (account) {
       fetchStudentInfo();
       fetchBalance();
       fetchRequests();
+      fetchRedemptions();
       fetchLeaderboard();
     }
   }, [account]);
@@ -66,6 +68,18 @@ function StudentDashboard({ account, lang, t }) {
     }
   };
 
+  const fetchRedemptions = async () => {
+    try {
+      const res = await fetch(`https://presentforstudent.onrender.com/api/redemptions/${account}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRedemptions(data);
+      }
+    } catch (error) {
+      console.error("Error fetching redemptions:", error);
+    }
+  };
+
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch(`https://presentforstudent.onrender.com/api/requests`);
@@ -91,9 +105,10 @@ function StudentDashboard({ account, lang, t }) {
 
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
-    if (!account) return alert(t.notConnected);
+    if (!account) return toast.error(t.notConnected);
+    
+    const toastId = toast.loading(lang === 'en' ? "Submitting request..." : "Đang gửi đơn...");
     setLoading(true);
-    setMessage('');
     try {
       const res = await fetch('https://presentforstudent.onrender.com/api/requests', {
         method: 'POST',
@@ -107,49 +122,77 @@ function StudentDashboard({ account, lang, t }) {
         })
       });
       if (res.ok) {
-        setMessage(lang === 'en' ? "✅ Request submitted successfully!" : "✅ Đã nộp đơn thành công!");
+        toast.success(lang === 'en' ? "Request submitted successfully!" : "Đã nộp đơn thành công!", { id: toastId });
         setReqForm({ title: '', description: '' });
         fetchRequests();
+      } else {
+        toast.error(lang === 'en' ? "Failed to submit." : "Lỗi: Không thể gửi đơn.", { id: toastId });
       }
     } catch (err) {
-      setMessage(lang === 'en' ? "❌ Failed to submit." : "❌ Lỗi: Không thể gửi đơn.");
+      toast.error(lang === 'en' ? "Failed to submit." : "Lỗi: Không thể gửi đơn.", { id: toastId });
+    }
+    setLoading(false);
+  };
+
+  const handleCancelRequest = async (id) => {
+    const toastId = toast.loading(lang === 'en' ? "Canceling..." : "Đang hủy đơn...");
+    setLoading(true);
+    try {
+      const res = await fetch(`https://presentforstudent.onrender.com/api/requests/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success(lang === 'en' ? "Request canceled." : "Đã hủy đơn.", { id: toastId });
+        fetchRequests();
+      } else {
+        toast.error("Failed to cancel.", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Failed to cancel.", { id: toastId });
     }
     setLoading(false);
   };
 
   const handleRedeem = async (item) => {
     if (parseFloat(balance) < parseFloat(item.cost)) {
-      return alert(lang === 'en' ? "Not enough ERT!" : "Không đủ ERT!");
+      return toast.error(lang === 'en' ? "Not enough ERT!" : "Không đủ ERT!");
     }
+    const toastId = toast.loading(lang === 'en' ? "Waiting for blockchain confirmation..." : "Đang chờ xác nhận từ Blockchain...");
     setLoading(true);
-    setMessage('');
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       
       const tx = await contract.redeemTokens(ethers.parseUnits(item.cost, 18), item.id);
-      setMessage(t.processing);
+      toast.loading(lang === 'en' ? "Processing transaction..." : "Đang xử lý giao dịch trên Blockchain...", { id: toastId });
       await tx.wait();
       
-      setMessage(lang === 'en' ? `🎉 Redeemed: ${item.name.en}` : `🎉 Đổi quà thành công: ${item.name.vi}`);
+      toast.success(lang === 'en' ? `🎉 Redeemed: ${item.name.en}` : `🎉 Đổi quà thành công: ${item.name.vi}`, { id: toastId });
       fetchBalance();
+      fetchRedemptions();
     } catch (error) {
       console.error(error);
       if (error.code === 'ACTION_REJECTED' || (error.message && error.message.includes('rejected'))) {
-        setMessage(lang === 'en' ? "❌ Rejected." : "❌ Đã hủy giao dịch.");
+        toast.error(lang === 'en' ? "Transaction rejected by user." : "Bạn đã hủy giao dịch.", { id: toastId });
       } else {
-        setMessage(lang === 'en' ? "❌ Failed." : "❌ Thất bại.");
+        toast.error(lang === 'en' ? "Transaction failed." : "Giao dịch thất bại.", { id: toastId });
       }
     }
     setLoading(false);
   };
 
+  const ledger = [
+    ...requests.filter(r => r.status === 'Issued').map(r => ({ type: 'earn', title: r.title, amount: r.amount || '?', date: r.issuedAt || r.date, id: r.id })),
+    ...redemptions.map(r => ({ type: 'spend', title: r.itemId, amount: r.amount, date: r.date, id: r.id }))
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   return (
-    <div className="max-w-6xl mx-auto space-y-10 pb-12 font-sans">
-      {message && (
-        <div className="p-4 rounded-xl text-center font-semibold bg-blue-50 text-blue-800 border-l-4 border-blue-500 shadow-sm dark:bg-blue-900/30 dark:text-blue-300">
-          {message}
+    <div className={`max-w-6xl mx-auto space-y-10 pb-12 font-sans ${loading ? 'pointer-events-none opacity-60 transition-opacity' : ''}`}>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl flex flex-col items-center">
+            <div className="w-12 h-12 border-4 border-academic-blue border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="font-semibold text-academic-dark dark:text-white">Processing...</p>
+          </div>
         </div>
       )}
 
@@ -181,7 +224,9 @@ function StudentDashboard({ account, lang, t }) {
               leaderboard.map((lb, idx) => (
                 <div key={lb.address} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-xl border border-slate-100 dark:border-slate-600">
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-lg text-academic-gold">#{idx + 1}</span>
+                    <span className="font-bold text-xl">
+                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : <span className="text-academic-gold text-base">#{idx + 1}</span>}
+                    </span>
                     <span className="text-sm font-mono text-academic-dark dark:text-academic-light">
                       {lb.address.substring(0, 6)}...{lb.address.slice(-4)}
                     </span>
@@ -234,7 +279,10 @@ function StudentDashboard({ account, lang, t }) {
           <h3 className="text-xl font-display font-bold text-academic-dark dark:text-white mb-6 flex items-center gap-2">📜 {t.reqHistory}</h3>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[350px]">
             {requests.length === 0 ? (
-              <p className="text-gray-400 text-center italic mt-10">{t.noReq}</p>
+              <div className="flex flex-col items-center justify-center h-full mt-10">
+                <span className="text-5xl grayscale opacity-50 mb-3">📭</span>
+                <p className="text-gray-400 text-center italic">{t.noReq}</p>
+              </div>
             ) : (
               requests.map(req => (
                 <div key={req.id} className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-4 rounded-xl hover:shadow-md transition-shadow">
@@ -249,10 +297,42 @@ function StudentDashboard({ account, lang, t }) {
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{req.description}</p>
+                  
+                  {req.status === 'Pending Review' && (
+                    <div className="mt-3 text-right">
+                      <button onClick={() => handleCancelRequest(req.id)} className="text-xs font-semibold text-red-500 hover:text-red-700 underline transition-colors">
+                        {lang === 'en' ? 'Cancel Request' : 'Hủy đơn này'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
           </div>
+        </div>
+      </div>
+      
+      {/* Student Ledger */}
+      <div className="edu-card p-8 border-t-4 border-t-emerald-500 bg-white dark:bg-slate-800">
+        <h3 className="text-xl font-display font-bold text-academic-dark dark:text-white mb-6 flex items-center gap-2">📊 {lang === 'en' ? 'Transaction History' : 'Lịch Sử Giao Dịch'}</h3>
+        <div className="space-y-3">
+          {ledger.length === 0 ? (
+             <p className="text-gray-400 text-sm italic">{lang === 'en' ? 'No transactions yet.' : 'Chưa có giao dịch nào.'}</p>
+          ) : (
+            ledger.map(tx => (
+              <div key={tx.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-100 dark:border-slate-600">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-sm text-academic-dark dark:text-white">
+                    {tx.type === 'earn' ? tx.title : `Bought: ${STORE_ITEMS.find(i => i.id === tx.title)?.name[lang] || tx.title}`}
+                  </span>
+                  <span className="text-xs text-gray-500">{new Date(tx.date).toLocaleString()}</span>
+                </div>
+                <div className={`font-bold font-mono ${tx.type === 'earn' ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                  {tx.type === 'earn' ? '+' : '-'}{tx.amount} ERT
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
+import { Toaster } from 'react-hot-toast';
 import StudentDashboard from './StudentDashboard';
 import StaffDashboard from './StaffDashboard';
 import { translations } from './translations';
@@ -132,8 +133,12 @@ function AppContent() {
   };
 
   return (
-  return (
     <div className="min-h-screen flex flex-col font-sans bg-academic-light dark:bg-academic-dark transition-colors duration-300">
+      <Toaster position="top-right" toastOptions={{
+        className: 'font-sans font-semibold rounded-xl shadow-lg',
+        success: { iconTheme: { primary: '#10B981', secondary: 'white' } },
+        error: { iconTheme: { primary: '#EF4444', secondary: 'white' } }
+      }}/>
       {/* Navigation Bar */}
       <nav className="w-full p-4 flex justify-between items-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-academic-border dark:border-academic-borderDark sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-3">
