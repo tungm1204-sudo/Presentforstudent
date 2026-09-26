@@ -15,11 +15,12 @@ app.use(express.json());
 const ACHV_FILE = path.join(__dirname, 'achievements.json');
 const REQ_FILE = path.join(__dirname, 'requests.json');
 const REDEEM_FILE = path.join(__dirname, 'redemptions.json');
+const STUDENT_FILE = path.join(__dirname, 'students.json');
 
 const initFile = (file) => {
     if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify([]));
 };
-[ACHV_FILE, REQ_FILE, REDEEM_FILE].forEach(initFile);
+[ACHV_FILE, REQ_FILE, REDEEM_FILE, STUDENT_FILE].forEach(initFile);
 
 const getData = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const saveData = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
@@ -33,6 +34,40 @@ const CONTRACT_ABI = [
 
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com');
 const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+// ==========================================
+// API: STUDENTS (Định danh)
+// ==========================================
+app.get('/api/students', (req, res) => {
+    try {
+        res.json(getData(STUDENT_FILE));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/students/:address', (req, res) => {
+    try {
+        const students = getData(STUDENT_FILE);
+        const student = students.find(s => s.address.toLowerCase() === req.params.address.toLowerCase());
+        if (student) res.json(student);
+        else res.status(404).json({ error: 'Not found' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/students', (req, res) => {
+    const { address, name, studentId } = req.body;
+    if (!address || !name || !studentId) return res.status(400).json({ error: 'Missing fields' });
+    try {
+        const students = getData(STUDENT_FILE);
+        const index = students.findIndex(s => s.address.toLowerCase() === address.toLowerCase());
+        if (index !== -1) {
+            students[index] = { address, name, studentId };
+        } else {
+            students.push({ address, name, studentId });
+        }
+        saveData(STUDENT_FILE, students);
+        res.status(201).json({ message: 'Student registered' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 // ==========================================
 // API: STUDENT REQUESTS (Xin Duyệt)

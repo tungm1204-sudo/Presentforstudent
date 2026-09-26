@@ -20,14 +20,28 @@ function StudentDashboard({ account, lang, t }) {
   const [loading, setLoading] = useState(false);
   const [reqForm, setReqForm] = useState({ title: '', description: '' });
   const [message, setMessage] = useState('');
+  const [studentInfo, setStudentInfo] = useState(null);
 
   useEffect(() => {
     if (account) {
+      fetchStudentInfo();
       fetchBalance();
       fetchRequests();
       fetchLeaderboard();
     }
   }, [account]);
+
+  const fetchStudentInfo = async () => {
+    try {
+      const res = await fetch(`https://presentforstudent.onrender.com/api/students/${account}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStudentInfo(data);
+      }
+    } catch (err) {
+      console.error("Error fetching student info:", err);
+    }
+  };
 
   const fetchBalance = async () => {
     try {
@@ -132,9 +146,9 @@ function StudentDashboard({ account, lang, t }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-up pb-10">
+    <div className="max-w-6xl mx-auto space-y-10 pb-12 font-sans">
       {message && (
-        <div className="modern-card p-4 text-center font-semibold text-indigo-800 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-900/40 border-l-4 border-l-indigo-500">
+        <div className="p-4 rounded-xl text-center font-semibold bg-blue-50 text-blue-800 border-l-4 border-blue-500 shadow-sm dark:bg-blue-900/30 dark:text-blue-300">
           {message}
         </div>
       )}
@@ -143,35 +157,37 @@ function StudentDashboard({ account, lang, t }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Balance Card */}
-        <div className="lg:col-span-2 modern-card p-8 flex flex-col justify-center bg-gradient-to-r from-blue-50 to-indigo-100/50 dark:from-slate-800 dark:to-indigo-900/30 border-none">
+        <div className="lg:col-span-2 edu-card p-8 flex flex-col justify-center bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">{t.myBalance}</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-mono mb-6">{account}</p>
+            <h2 className="text-3xl font-display font-bold text-academic-blue dark:text-academic-lightBlue mb-2">
+              {lang === 'en' ? 'Welcome' : 'Xin chào'}, {studentInfo ? `${studentInfo.name} (${studentInfo.studentId})` : account.substring(0,6) + '...'}
+            </h2>
+            <p className="text-gray-500 text-sm font-mono mb-6">{account}</p>
           </div>
-          <div className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            {balance} <span className="text-3xl font-semibold text-slate-500 dark:text-slate-400">ERT</span>
+          <div className="text-6xl font-display font-bold text-academic-dark dark:text-academic-light">
+            {balance} <span className="text-2xl text-gray-500 font-sans ml-1 font-medium">ERT</span>
           </div>
         </div>
 
         {/* Leaderboard Card */}
-        <div className="modern-card p-6 border-t-4 border-t-yellow-400">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+        <div className="edu-card p-6 border-t-4 border-t-academic-gold bg-white dark:bg-slate-800">
+          <h3 className="text-xl font-display font-bold text-academic-dark dark:text-white mb-6 flex items-center gap-2">
             🏆 {t.leaderboard}
           </h3>
           <div className="space-y-3">
             {leaderboard.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 italic">{t.noData}</p>
+              <p className="text-sm text-gray-500 italic">{t.noData}</p>
             ) : (
               leaderboard.map((lb, idx) => (
-                <div key={lb.address} className="flex justify-between items-center bg-slate-100 dark:bg-slate-700/50 p-2 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-yellow-600 dark:text-yellow-400">#{idx + 1}</span>
-                    <span className="text-sm font-mono text-slate-600 dark:text-slate-300">
+                <div key={lb.address} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-xl border border-slate-100 dark:border-slate-600">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-lg text-academic-gold">#{idx + 1}</span>
+                    <span className="text-sm font-mono text-academic-dark dark:text-academic-light">
                       {lb.address.substring(0, 6)}...{lb.address.slice(-4)}
                     </span>
                   </div>
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400 text-sm">
-                    {lb.count} {lang === 'en' ? 'Achievements' : 'Thành tích'}
+                  <span className="font-semibold text-academic-blue dark:text-academic-lightBlue text-sm bg-blue-50 dark:bg-blue-900/40 px-2 py-1 rounded-lg">
+                    {lb.count} {lang === 'en' ? 'ACH' : 'TT'}
                   </span>
                 </div>
               ))
@@ -182,57 +198,57 @@ function StudentDashboard({ account, lang, t }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Submit Request Form */}
-        <div className="modern-card p-6 border-t-4 border-t-blue-500">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">📝 {t.submitAchievement}</h3>
+        <div className="edu-card p-8 border-t-4 border-t-academic-lightBlue bg-white dark:bg-slate-800">
+          <h3 className="text-xl font-display font-bold text-academic-dark dark:text-white mb-6 flex items-center gap-2">📝 {t.submitAchievement}</h3>
           <form onSubmit={handleRequestSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">{t.achTitle}</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t.achTitle}</label>
               <input
                 type="text"
                 value={reqForm.title}
                 onChange={e => setReqForm({...reqForm, title: e.target.value})}
                 required
-                className="modern-input w-full p-3"
+                className="edu-input w-full"
                 placeholder={t.achTitlePh}
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">{t.achDesc}</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t.achDesc}</label>
               <textarea
                 value={reqForm.description}
                 onChange={e => setReqForm({...reqForm, description: e.target.value})}
                 required
                 rows={4}
-                className="modern-input w-full p-3"
+                className="edu-input w-full resize-none"
                 placeholder={t.achDescPh}
               />
             </div>
-            <button type="submit" disabled={loading} className="modern-button w-full">
+            <button type="submit" disabled={loading} className="edu-button w-full mt-2">
               {loading ? t.submitting : t.submitBtn}
             </button>
           </form>
         </div>
 
         {/* Requests List */}
-        <div className="modern-card p-6 flex flex-col h-full border-t-4 border-t-indigo-500">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">📜 {t.reqHistory}</h3>
+        <div className="edu-card p-8 flex flex-col h-full border-t-4 border-t-academic-blue bg-white dark:bg-slate-800">
+          <h3 className="text-xl font-display font-bold text-academic-dark dark:text-white mb-6 flex items-center gap-2">📜 {t.reqHistory}</h3>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[350px]">
             {requests.length === 0 ? (
-              <p className="text-slate-400 dark:text-slate-500 text-center italic mt-10">{t.noReq}</p>
+              <p className="text-gray-400 text-center italic mt-10">{t.noReq}</p>
             ) : (
               requests.map(req => (
-                <div key={req.id} className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl p-4 transition hover:shadow-md">
+                <div key={req.id} className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 p-4 rounded-xl hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-bold text-slate-800 dark:text-white pr-2">{req.title}</h4>
-                    <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wider whitespace-nowrap ${
-                      req.status === 'Issued' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-200 dark:border-green-800' : 
-                      req.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-800 animate-pulse-slow' :
-                      'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border border-red-200 dark:border-red-800'
+                    <h4 className="font-semibold text-academic-dark dark:text-white pr-2">{req.title}</h4>
+                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap ${
+                      req.status === 'Issued' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 
+                      req.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
+                      'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                     }`}>
                       {req.status}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">{req.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{req.description}</p>
                 </div>
               ))
             )}
@@ -241,20 +257,20 @@ function StudentDashboard({ account, lang, t }) {
       </div>
 
       {/* Reward Store */}
-      <div className="modern-card p-8">
-        <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-6 text-center">🎁 {t.rewardStore}</h3>
+      <div className="edu-card p-8 bg-white dark:bg-slate-800">
+        <h3 className="text-2xl font-display font-bold text-academic-dark dark:text-white mb-8 text-center flex items-center justify-center gap-2">🎁 {t.rewardStore}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {STORE_ITEMS.map(item => (
-            <div key={item.id} className="bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 text-center transform transition duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-indigo-200 dark:hover:border-indigo-500 group">
-              <div className="text-7xl mb-6 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">{item.image}</div>
-              <h4 className="font-bold text-lg text-slate-800 dark:text-white mb-2">{item.name[lang]}</h4>
-              <p className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-6">
-                {item.cost} ERT
+            <div key={item.id} className="bg-slate-50 dark:bg-slate-700/30 border border-slate-200 dark:border-slate-600 rounded-2xl p-6 text-center transform transition duration-300 hover:-translate-y-1 hover:shadow-lg group">
+              <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">{item.image}</div>
+              <h4 className="font-semibold text-lg text-academic-dark dark:text-white mb-2">{item.name[lang]}</h4>
+              <p className="text-2xl font-bold text-academic-blue dark:text-academic-lightBlue mb-6">
+                {item.cost} <span className="text-lg font-medium text-gray-500">ERT</span>
               </p>
               <button 
                 onClick={() => handleRedeem(item)}
                 disabled={loading}
-                className="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold py-2.5 px-4 rounded-xl transition-colors duration-200"
+                className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 text-academic-blue dark:text-academic-lightBlue font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-sm"
               >
                 {t.redeemNow}
               </button>

@@ -102,4 +102,31 @@ Bạn có thể copy các ý sau để đưa vào báo cáo môn học:
 **3. Bảo mật (Security):**
 - Áp dụng `Ownable` và `modifier onlyStaff` của OpenZeppelin để đảm bảo chỉ những người có thẩm quyền (Giảng viên) mới được phép gọi hàm đúc tiền. Sinh viên không thể tự đúc tiền cho bản thân.
 
+---
+
+## PHẦN 5: HƯỚNG DẪN DEPLOY LÊN RENDER (THAY THẾ INFINITYFREE)
+
+Render là nền tảng vượt trội hơn hẳn InfinityFree, hỗ trợ cực tốt cho cả Backend Node.js và Frontend React, tự động cập nhật khi bạn đẩy code lên GitHub.
+
+**Lưu ý quan trọng về Blockchain:** Bạn **KHÔNG** cần deploy Blockchain lên Render. Smart Contract của bạn đã được deploy vĩnh viễn lên mạng lưới **Ethereum Sepolia** (địa chỉ `0x44A3875B9BC...`). Render chỉ đóng vai trò làm máy chủ lưu trữ Giao diện Web (FE) và Cơ sở dữ liệu Off-chain (BE).
+
+### Bước 1: Deploy Backend (Web Service)
+1. Đăng nhập [Render.com](https://render.com), chọn **New > Web Service**.
+2. Kết nối với repo GitHub chứa code đồ án của bạn.
+3. Trong phần cấu hình:
+   - **Root Directory:** Gõ `backend`
+   - **Environment:** Chọn `Node`
+   - **Build Command:** Gõ `npm install`
+   - **Start Command:** Gõ `node server.js`
+4. Ấn **Create Web Service**. Đợi Render chạy xong, bạn sẽ có URL của backend (VD: `https://presentforstudent.onrender.com`).
+
+### Bước 2: Deploy Frontend (Static Site)
+1. Chọn **New > Static Site** trên Render.
+2. Vẫn kết nối với chính repo GitHub đồ án đó.
+3. Trong phần cấu hình:
+   - **Root Directory:** Gõ `frontend`
+   - **Build Command:** Gõ `npm install && npm run build`
+   - **Publish Directory:** Gõ `dist` (Quan trọng: Phải là `dist` vì Vite build ra thư mục này).
+4. Ấn **Create Static Site**. Đợi vài phút, bạn sẽ có đường link Website xịn xò không dính quảng cáo như InfinityFree!
+
 *Chúc bạn quay video thành công và đạt điểm A+!*
