@@ -119,6 +119,28 @@ function StaffDashboard({ account, lang, t }) {
     setLoading(false);
   };
 
+  const handleReject = async (id) => {
+    const toastId = toast.loading(lang === 'en' ? "Rejecting..." : "Đang từ chối...");
+    setLoading(true);
+    try {
+      const res = await fetch(`https://presentforstudent.onrender.com/api/requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Failed/Cancelled' })
+      });
+      if (res.ok) {
+        toast.success(lang === 'en' ? "Request rejected." : "Đã từ chối đơn.", { id: toastId });
+        fetchRequests();
+      } else {
+        toast.error("Failed to reject.", { id: toastId });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error rejecting request.", { id: toastId });
+    }
+    setLoading(false);
+  };
+
   const exportToCSV = () => {
     const header = "Date,Student Name,Student ID,Wallet Address,Achievement,Amount (ERT)\n";
     const rows = history.map(req => {
@@ -199,25 +221,34 @@ function StaffDashboard({ account, lang, t }) {
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto pt-5 md:pt-0 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 md:pl-6">
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    placeholder={t.amount}
-                    value={amounts[req.id] || ''}
-                    onChange={(e) => handleAmountChange(req.id, e.target.value)}
-                    className="edu-input w-full sm:w-36 pr-12 text-right"
-                  />
-                  <span className="absolute right-4 top-3.5 text-gray-400 font-semibold text-sm">ERT</span>
+              <div className="flex flex-col items-stretch gap-3 w-full md:w-auto pt-5 md:pt-0 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 md:pl-6">
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder={t.amount}
+                      value={amounts[req.id] || ''}
+                      onChange={(e) => handleAmountChange(req.id, e.target.value)}
+                      className="edu-input w-full sm:w-36 pr-12 text-right"
+                    />
+                    <span className="absolute right-4 top-3.5 text-gray-400 font-semibold text-sm">ERT</span>
+                  </div>
+                  <button
+                    onClick={() => handleApprove(req)}
+                    disabled={loading}
+                    className="edu-button whitespace-nowrap py-3"
+                  >
+                    {loading ? t.processing : t.approveMint}
+                  </button>
                 </div>
                 <button
-                  onClick={() => handleApprove(req)}
+                  onClick={() => handleReject(req.id)}
                   disabled={loading}
-                  className="edu-button whitespace-nowrap py-3"
+                  className="w-full py-2.5 px-4 rounded-xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors shadow-sm"
                 >
-                  {loading ? t.processing : t.approveMint}
+                  {lang === 'en' ? '❌ Reject Request' : '❌ Từ chối đơn này'}
                 </button>
               </div>
             </div>
