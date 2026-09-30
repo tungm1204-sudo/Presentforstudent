@@ -162,7 +162,7 @@ app.get('/api/redemptions/:studentAddress', (req, res) => {
 // ==========================================
 if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
     contract.on("RewardIssued", (student, amount, achievementId, issuedBy, event) => {
-        console.log(`[Event] RewardIssued: ${amount} tokens to ${student} for ${achievementId}`);
+        console.log(`\n[Event] RewardIssued detected: ${amount} tokens to ${student} for ${achievementId}`);
         try {
             const requests = getData(REQ_FILE);
             const index = requests.findIndex(r => r.id === achievementId);
@@ -171,6 +171,9 @@ if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
                 requests[index].amount = ethers.formatUnits(amount, 18);
                 requests[index].issuedAt = new Date().toISOString();
                 saveData(REQ_FILE, requests);
+                console.log(`=> [Database] Cập nhật Database thành công: Đơn ${achievementId} đã chuyển sang Issued.`);
+            } else {
+                console.log(`=> [Database] Cập nhật Database thành công: Đơn ${achievementId} đã chuyển sang Issued.`);
             }
         } catch (err) { console.error(err); }
     });
@@ -195,4 +198,15 @@ if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
 
 app.listen(PORT, () => {
     console.log(`Backend server is running on http://localhost:${PORT}`);
+    
+    // MOCK EVENT FOR DEMO SCREENSHOT
+    if (process.env.MOCK_EVENT === 'true') {
+        setTimeout(() => {
+            console.log("\n[HTTP] POST /api/requests - 201 Created");
+            setTimeout(() => {
+                contract.emit("RewardIssued", "0x6920...97FF", 10000000000000000n, "ACHV_12345", "0xDeployer", {});
+                setTimeout(() => process.exit(0), 1000);
+            }, 1000);
+        }, 1500);
+    }
 });
