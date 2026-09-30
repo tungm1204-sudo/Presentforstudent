@@ -179,7 +179,7 @@ if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
     });
 
     contract.on("TokensRedeemed", (student, amount, itemId, event) => {
-        console.log(`[Event] TokensRedeemed: ${amount} tokens spent by ${student} for ${itemId}`);
+        console.log(`\n[Event] TokensRedeemed detected: ${amount} tokens spent by ${student} for ${itemId}`);
         try {
             const redemptions = getData(REDEEM_FILE);
             redemptions.push({
@@ -190,6 +190,7 @@ if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
                 date: new Date().toISOString()
             });
             saveData(REDEEM_FILE, redemptions);
+            console.log(`=> [Database] Cập nhật Database thành công: Lưu trữ lịch sử đổi quà món ${itemId}.`);
         } catch (err) { console.error(err); }
     });
 } else {
